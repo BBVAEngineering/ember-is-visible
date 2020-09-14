@@ -12,32 +12,6 @@ export const APIs = {
 };
 
 /**
- * Returns visibility API support flag & flag / event names, depending on the
- * user's browser.
- *
- * See also:
- * https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
- * https://whatwebcando.today/foreground-detection.html
- */
-export const detectApi = function(_document = {}) {
-  let api;
-
-  if (isPresent(get(_document, 'hidden'))) {
-    api = APIs.global;
-  } else if (isPresent(get(_document, 'webkitHidden'))) {
-    api = APIs.webkit;
-  } else if (isPresent(get(_document, 'mozHidden'))) {
-    api = APIs.mozilla;
-  } else if (isPresent(get(_document, 'msHidden'))) {
-    api = APIs.ie;
-  } else {
-    api = APIs.unsupported;
-  }
-
-  return api;
-};
-
-/**
  * This service keeps track of whether the window has ever lost visibility. This
  * happens when the user switches tabs, minimizes the window, etc.
  */
@@ -45,9 +19,54 @@ export default Service.extend({
 
   visible: true,
 
-  lostVisibility: false,
+	lostVisibility: false,
+	
+		/**
+	 * Returns visibility API support flag & flag / event names, depending on the
+	 * user's browser.
+	 *
+	 * See also:
+	 * https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
+	 * https://whatwebcando.today/foreground-detection.html
+	 *
+	 * @property pageVisibilityAPI
+	 * @type Object
+	 */
+	pageVisibilityAPI: computed(function() {
+		if (isPresent(this.get('_document.hidden'))) {
+			return {
+				isSupported: true,
+				flagName: 'hidden',
+				eventName: 'visibilitychange'
+			};
+		}
 
-  pageVisibilityAPI: detectApi(document),
+		if (isPresent(this.get('_document.webkitHidden'))) {
+			return {
+				isSupported: true,
+				flagName: 'webkitHidden',
+				eventName: 'webkitvisibilitychange'
+			};
+		}
+
+		if (isPresent(this.get('_document.mozHidden'))) {
+			return {
+				isSupported: true,
+				flagName: 'mozHidden',
+				eventName: 'mozvisibilitychange'
+			};
+		}
+
+		if (isPresent(this.get('_document.msHidden'))) {
+			return {
+				isSupported: true,
+				flagName: 'msHidden',
+				eventName: 'msvisibilitychange'
+			};
+		}
+
+		return { isSupported: false };
+	}),
 
   init() {
     this._super(...arguments);
